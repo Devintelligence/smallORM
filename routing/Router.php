@@ -72,7 +72,6 @@ Class Router {
         $controllerFile = $GLOBALS['ROOTPATH'] . '/controllers/' . $folder . '' . $controllerFileName . '.php';
 
 
-
         if (is_readable($controllerFile)) {
 
             require_once $controllerFile;
@@ -96,10 +95,13 @@ Class Router {
 
         header('HTTP/1.0 404 Not Found');
         echo "<h1>404 Not Found</h1>";
-        echo "The page that you have requested could not be found.";
-        exit();
+        echo "The page that you have requested could not be found."
+        . "named:".$controllerName."<br>"
+                . "method: ".$method."<br>"
+                . "filename: ".$controllerFileName."<br>";
+//        exit();
 
-        throw new Exception('404 - ' . $request->getController() . '--Controller not found');
+        throw new Exception('404 - ' . $request->getController() . ' --Controller not found');
     }
 
 }

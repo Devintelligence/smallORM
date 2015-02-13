@@ -109,7 +109,7 @@ class BaseController {
 
     function xss_clean($input) {
 
-/// Prevents XXS Attacks www.itshacked.com
+
         $search = array(
             '@<script[^>]*?>.*?</script>@si', // Strip out javascript
             '@<[\/\!]*?[^<>]*?>@si', // Strip out HTML tags

@@ -19,8 +19,12 @@ Class Request {
     public function __construct() {
 
         $requestString = $_SERVER['REQUEST_URI'];
-        $controllerString = str_replace($GLOBALS["BASEPATH"], "", $requestString);
 
+        if ($GLOBALS["BASEPATH"] != "/") {
+            $controllerString = str_replace($GLOBALS["BASEPATH"], "", $requestString);
+        } else {
+            $controllerString = $requestString;
+        }
 
 
         $first_slash = strpos($requestString, '/');
@@ -32,10 +36,10 @@ Class Request {
         $parts = explode('/', $controllerString);
 
 
-
-
-        if (count($parts) > 1) {
-            unset($parts[0]);
+        if ($GLOBALS["BASEPATH"] != "/") {
+            if (count($parts) > 1) {
+                unset($parts[0]);
+            }
         }
 
 

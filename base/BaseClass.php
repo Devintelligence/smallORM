@@ -10,9 +10,9 @@
  *
  * @author CMatecki
  */
-include_once dirname('.') . '/includes/mysql.php';
+include_once $GLOBALS['ROOTPATH'] . '/includes/mysql.php';
 
-include_once dirname('.') . '/includes/conf.inc.php';
+include_once $GLOBALS['ROOTPATH'] . '/includes/conf.inc.php';
 
 class BaseClass {
 
