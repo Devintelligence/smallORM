@@ -16,13 +16,18 @@ Class Router {
 
 
         $route = new Route();
-        $route = $route->getByRouteName($request->getController());
 
+
+        $route = $route->getByRouteName(ltrim($request->getRequestpath(), '/'));
+
+        $path = "";
         if ($route != null) {
             $controllerName = $route[0]->getController();
             $controller_part = explode("_", $controllerName);
-            $method = $route[0]->getAction();
+            $method = ($route[0]->getAction() == "") ? "indexAction" : $route[0]->getAction() . "Action";
 
+
+            //   $path = $route[0]->getPath();
             $parts = explode("/", $route[0]->getArgs());
             $arguments = array();
             $i = 0;
@@ -39,17 +44,16 @@ Class Router {
                 $i++;
             }
             $args = $arguments;
+
             $request->setArgs($args);
         } else {
             $controllerName = $request->getController();
             $controller_part = explode("_", $request->getController());
-            $method = $request->getMethod();
 
-            $newname = $request->getMethod();
 
-            $newname = explode('?', $newname);
+            $newname = explode('?', $request->getMethod());
 
-            $method = $newname[0];
+            $method = (count($newname) > 1) ? $newname[0] . "Action" : $request->getMethod() . "Action";
 
             $args = $request->getArgs();
         }
@@ -69,21 +73,23 @@ Class Router {
 
 
 
-        $controllerFile = $GLOBALS['ROOTPATH'] . '/controllers/' . $folder . '' . $controllerFileName . '.php';
+        $controllerFile = $GLOBALS['ROOTPATH'] . '/controllers/' . $path . $folder . '' . $controllerFileName . '.php';
 
 
         if (is_readable($controllerFile)) {
 
-            require_once $controllerFile;
+
             $controller = new $controller;
 
             $controller->init();
 
             if (!empty($args)) {
-                call_user_func_array(array($controller, $method), $args);
-            } else {
-                call_user_func(array($controller, $method));
+                $controller->args = $args;
             }
+
+
+            call_user_func(array($controller, $method));
+
 
             $controller->render();
 
@@ -92,13 +98,15 @@ Class Router {
 
 
 
-
+  /*/      header('HTTP/1.0 404 Not Found');
+        include('404.html');
+        exit;*/
         header('HTTP/1.0 404 Not Found');
         echo "<h1>404 Not Found</h1>";
         echo "The page that you have requested could not be found."
-        . "named:".$controllerName."<br>"
-                . "method: ".$method."<br>"
-                . "filename: ".$controllerFileName."<br>";
+        . "named:" . $controllerName . "<br>"
+        . "method: " . $method . "<br>"
+        . "filename: " . $controllerFileName . "<br>";
 //        exit();
 
         throw new Exception('404 - ' . $request->getController() . ' --Controller not found');

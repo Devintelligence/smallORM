@@ -1,4 +1,9 @@
 RewriteEngine on
+RewriteBase /
 
-RewriteCond %{DOCUMENT_ROOT} !-f
-RewriteRule !\.(js|ico|gif|jpg|png|css|html|swf|flv|xml)$ index.php [QSA,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+
+RewriteRule ^(.*) index.php
+ 
+AddCharset utf-8 .css .htm .html .xhtml .php .tpl 

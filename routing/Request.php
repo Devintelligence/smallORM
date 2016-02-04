@@ -15,6 +15,7 @@ Class Request {
     private $_controller;
     private $_method;
     private $_args;
+    private $_requestpath;
 
     public function __construct() {
 
@@ -62,10 +63,14 @@ Class Request {
 
         $this->_controller = ($c = array_shift($parts)) ? $c : 'index';
 
-
+        $this->_requestpath = $requestString;
         $this->_method = ($c = array_shift($parts)) ? $c : 'index';
 
         $this->_args = (count($arguments) > 0) ? $arguments : array();
+    }
+
+    public function getRequestpath() {
+        return $this->_requestpath;
     }
 
     public function getController() {

@@ -11,7 +11,7 @@
  * @author CMatecki
  */
 
-class Renderer extends baseRender {
+class Renderer extends BaseRender {
     //put your code 
 }
 

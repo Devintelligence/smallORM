@@ -10,10 +10,6 @@
  *
  * @author CMatecki
  */
-include_once $GLOBALS['ROOTPATH'] . '/includes/mysql.php';
-
-include_once $GLOBALS['ROOTPATH'] . '/includes/conf.inc.php';
-
 class BaseClass {
 
     private $table = "";
@@ -21,8 +17,7 @@ class BaseClass {
 
     function __construct() {
         global $db;
-        $db = new Database(constant("HOST"), constant("USER"), constant("HASH"));
-        $db->select_db(constant("DATABASE"));
+        $db = new Database();
     }
 
     function getTable() {
@@ -45,7 +40,6 @@ class BaseClass {
         $sql = "SELECT * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0)";
 
         $model = $this->select($sql, $this);
-        ;
         return $model;
     }
 
@@ -71,8 +65,9 @@ class BaseClass {
         $sql = "SELECT * FROM `" . $this->getTable() . "` WHERE " . $this->getPrimaryColumn() . " = " . $id;
 
         $model = $this->select($sql, $this);
-
-        return $model[0];
+        if (count($model) > 0)
+            return $model[0];
+        return $model;
     }
 
     function getByIdAsArray($id) {
@@ -80,6 +75,49 @@ class BaseClass {
         $sql = "SELECT * FROM `" . $this->getTable() . "` WHERE " . $this->getPrimaryColumn() . " = " . $id;
         $data = $this->selectQueryAsArray($sql);
         return $data[0];
+    }
+
+    function getByFieldValue($field, $value) {
+        $sql = "SELECT * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0)  AND " . $field . " = '" . $value . "'";
+        $model = $this->select($sql, $this);
+        if (count($model) > 0)
+            return $model[0];
+        else
+            return $model;
+    }
+
+    function getAllByFieldValue($field, $value) {
+        $sql = "SELECT * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0)  AND " . $field . " = '" . $value . "'";
+
+        $model = $this->select($sql, $this);
+        return $model;
+    }
+
+    function getAllLikeFieldValue($field, $value) {
+        $sql = "SELECT * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0) AND " . $field . " LIKE '" . $value . "'";
+        $model = $this->select($sql, $this);
+        return $model;
+    }
+
+    function getAllByFieldValueGreaterSimiliarThan($field, $value) {
+        $sql = "SELECT SQL_CACHE * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0)  AND " . $field . " >= '" . $value . "'";
+
+        $model = $this->select($sql, $this);
+        return $model;
+    }
+
+    function getAllByFieldValueSmallerSimiliarThan($field, $value) {
+        $sql = "SELECT SQL_CACHE * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0)  AND " . $field . " <= '" . $value . "'";
+        $model = $this->select($sql, $this);
+        return $model;
+    }
+
+    function getByFieldIsNull($field) {
+        $sql = "SELECT SQL_CACHE * FROM `" . $this->getTable() . "` WHERE (deleted IS NULL OR deleted =0)  AND (" . $field . " IS NULL  OR " . $field . " = 0) and (hidden IS NULL OR hidden =0)";
+
+        $model = $this->select($sql, $this);
+
+        return $model;
     }
 
     function customSelectQuery($sql) {
@@ -168,7 +206,7 @@ class BaseClass {
     function insert() {
         global $db;
 
-        $date = date("Y-m-d H:i");
+        $date = date("Y-m-d H:i:s");
 
         $sql = "";
 
@@ -177,8 +215,9 @@ class BaseClass {
         $sql.="VALUES";
         $sql.="(" . $this->getModelValues($this) . ",'" . $date . "')";
 
-
-
+        
+        echo $sql;
+        
         $insertId = $db->upsert($sql);
 
 
@@ -188,7 +227,7 @@ class BaseClass {
     function insertForeign() {
         global $db;
 
-        $date = date("Y-m-d H:i");
+        $date = date("Y-m-d H:i:s");
 
         $sql = "";
 
@@ -208,7 +247,7 @@ class BaseClass {
     function insertWithPrimary() {
         global $db;
 
-        $date = date("Y-m-d H:i");
+        $date = date("Y-m-d H:i:s");
 
         $sql = "";
 
@@ -225,9 +264,9 @@ class BaseClass {
         return $insertId;
     }
 
-    function update($model) {
+    function update() {
         global $db;
-        $date = date("Y-m-d H:i");
+        $date = date("Y-m-d H:i:s");
 
 
         $sql = "";
@@ -245,7 +284,7 @@ class BaseClass {
 
     function updateWithId($model, $id) {
         global $db;
-        $date = date("Y-m-d H:i");
+        $date = date("Y-m-d H:i:s");
         $sql = "";
         $keyColumn = $model->getPrimaryColumn();
         $sql.="UPDATE `" . $model->getTable() . "` SET ";
@@ -259,7 +298,7 @@ class BaseClass {
 
     function delete($id) {
         global $db;
-        $date = date("d.m.Y H:i");
+        $date = date("Y-m-d H:i:s");
         $sql = "UPDATE `" . $this->getTable() . "` set deleted=1,deleted_at='" . $date . "' WHERE " . $this->getPrimaryColumn() . "=" . $id;
         $db->sql($sql);
     }
@@ -290,7 +329,7 @@ class BaseClass {
                 $type = gettype($model->$prop);
                 if ($model->$prop != "") {
 
-                    $val = ($type == "string") ? "'" . mysqli_real_escape_string($db->connid, $model->$prop) . "'" : $model->$prop;
+                    $val = ($type == "string") ? "'" . $this->escape($model->$prop) . "'" : $model->$prop;
 
                     $values[$i] = $prop . "=" . $val;
 
@@ -312,9 +351,10 @@ class BaseClass {
         foreach ($props as $prop => $value) {
             if ($prop != "table" && $prop != "primaryColumn" && $prop != $this->primaryColumn) {
                 $type = gettype($model->$prop);
+
                 if ($model->$prop != "") {
 
-                    $val = ($type == "string") ? "'" . mysqli_real_escape_string($db->connid, $model->$prop) . "'" : $model->$prop;
+                    $val = ($type == "string") ? "'" . $this->escape($model->$prop) . "'" : $model->$prop;
 
                     $values[$i] = $val;
 
@@ -449,6 +489,9 @@ class BaseClass {
         return $inputx;
     }
 
-}
+    public function escape($input) {
+        global $db;
+        return $db->escape($input);
+    }
 
-?>
+}

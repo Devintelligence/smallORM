@@ -7,7 +7,7 @@
  */
 //include_once 'Smarty/Smarty.class.php';
 
-class baseRender {
+class BaseRender {
 
     protected $smarty;
     protected $view;
@@ -34,19 +34,19 @@ class baseRender {
         if ($this->smarty->templateExists(dirname('.') . '/templates/' . $this->globalTemplatePath . '/' . $this->template . '.tpl')) {
 
             if ($this->getParentLayout() != null) {
-              
+          
                 echo(
                 str_replace("###content###", $this->smarty->fetch($this->globalTemplatePath . '/' . $this->template . '.tpl'), $this->smarty->fetch(dirname('.') . "/layouts/" . $this->getParentLayout() . ".tpl"))
                 );
             } else {
-            
+             
                 $this->smarty->display($this->globalTemplatePath . '/' . $this->template . '.tpl');
             }
         } else if ($this->ignoreTemplate) {
-            
+           
         } else {
             
-           // throw new SmartyException("Template not found" . $this->globalTemplatePath . '/' . $this->template);
+          throw new SmartyException("Template not found " . $this->globalTemplatePath . '/' . $this->template);
         }
     }
 
